@@ -17,7 +17,14 @@ function message(id,text,error=false){$(id).textContent=text;$(id).className=err
 const configured=SUPABASE_PUBLISHABLE_KEY.startsWith('sb_publishable_')&&SUPABASE_URL.startsWith('https://');
 if(!configured){message('setupState','Publishable key が未設定です。設定後にページを再読み込みしてください。',true);$('loginForm').querySelector('button').disabled=true}else{$('setup').classList.add('hidden');db=supabase.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);init()}
 async function init(){const {data:{session}}=await db.auth.getSession();if(session)await enter();db.auth.onAuthStateChange((_event,session)=>{if(!session){$('dashboard').classList.add('hidden');$('loginCard').classList.remove('hidden');$('logout').classList.add('hidden')}})}
-async function enter(){const {data:{user},error:e}=await db.auth.getUser();if(e||!user){message('loginMsg','ログインしてください。',true);return}const {data,error}=await db.from('admin_users').select('user_id').eq('user_id',user.id).maybeSingle();if(error||!data){message('loginMsg','管理者権限がありません。',true);await db.auth.signOut();return}$('loginCard').classList.add('hidden');$('dashboard').classList.remove('hidden');$('logout').classList.remove('hidden');await Promise.all([loadProducts(),loadOrders()])}
+async function enter(){const {data:{user},error:e}=await db.auth.getUser();if(e||!user){message('loginMsg','ログインしてください。',true);return}const {data,error}=await db.from('admin_users').select('user_id').eq('user_id',user.id).maybeSingle();if(error||!data){
+  message(
+    'loginMsg',
+    error ? '数据库错误：'+error.message : '没有找到管理员记录，用户ID：'+user.id,
+    true
+  );
+  return;
+}$('loginCard').classList.add('hidden');$('dashboard').classList.remove('hidden');$('logout').classList.remove('hidden');await Promise.all([loadProducts(),loadOrders()])}
 $('loginForm').onsubmit=async ev=>{ev.preventDefault();message('loginMsg','ログイン中...');const {error}=await db.auth.signInWithPassword({email:$('email').value.trim(),password:$('password').value});if(error)return message('loginMsg',error.message,true);await enter()};
 $('logout').onclick=async()=>{await db.auth.signOut();location.reload()};
 async function loadProducts(){const {data,error}=await db.from('products').select('id,name,description,price_yen,category,is_published').order('created_at',{ascending:false});if(error){$('productsList').textContent='読み込みエラー: '+error.message;return}products=data||[];$('productsList').innerHTML=products.length?products.map(p=>`<div class="item"><strong>${escapeHTML(p.name)}</strong> <span class="pill">${p.is_published?'公開中':'非公開'}</span><div class="muted">¥${Number(p.price_yen).toLocaleString('ja-JP')} · ${escapeHTML(p.category||'未分類')}</div><div class="actions"><button class="secondary" data-edit="${p.id}">編集</button><button class="danger" data-delete="${p.id}">削除</button></div></div>`).join(''):'商品はまだ登録されていません。'}
