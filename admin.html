@@ -37,8 +37,9 @@ async function loadOrders(){
  const holder=$('ordersList');holder.textContent='注文を読み込み中...';
  const {data,error}=await db.from('orders').select('id,status,contact_email,customer_name,phone,postal_code,shipping_address,customer_note,quoted_total_yen,created_at').order('created_at',{ascending:false}).limit(100);
  if(error){holder.textContent='読み込みエラー: '+error.message;return}
- const orders=data||[];
- if(!orders.length){holder.textContent='注文はまだありません。';return}
+ const allOrders=data||[];
+ const orders=allOrders.filter(o=>showCancelled?o.status==='cancelled':o.status!=='cancelled');
+ if(!orders.length){holder.textContent=showCancelled?'キャンセル済みの注文はありません。':'表示する注文はありません。';return}
  const ids=orders.map(o=>o.id);
  const {data:items,error:itemError}=await db.from('order_items').select('order_id,product_id,quantity,unit_price_yen').in('order_id',ids);
  if(itemError){holder.textContent='商品明細の読み込みエラー: '+itemError.message;return}
@@ -58,10 +59,22 @@ async function loadOrders(){
    <strong>お客様情報</strong><br>お名前：${val(o.customer_name)}<br>メール：${val(o.contact_email)}<br>電話：${val(o.phone)}<br>郵便番号：${val(o.postal_code)}<br>住所：<span style="white-space:pre-wrap">${val(o.shipping_address)}</span><br>備考：<span style="white-space:pre-wrap">${val(o.customer_note)}</span></div>
    <div style="overflow-x:auto;margin-top:12px"><table style="width:100%;border-collapse:collapse;text-align:left;font-size:13px"><thead><tr><th>商品</th><th>数量</th><th>単価</th><th>小計</th></tr></thead><tbody>${rows}</tbody></table></div>
    <p><strong>商品合計：${money(subtotal)}</strong> <span class="muted">（送料等を含まない）</span></p></details>
-   <div class="row"><div><label>注文ステータス</label><select id="status-${o.id}">${Object.entries(statuses).map(([key,label])=>`<option value="${key}" ${o.status===key?'selected':''}>${label}</option>`).join('')}</select></div><div><label>お見積り合計（円）</label><input id="quote-${o.id}" type="number" min="0" step="1" value="${o.quoted_total_yen??''}" placeholder="未設定"></div></div><div class="actions"><button data-save-order="${o.id}">変更を保存</button>${o.status!=='cancelled'?`<button class="danger" data-cancel-order="${escapeHTML(o.id)}">注文をキャンセル</button>`:''}</div></div>`;
+   <div class="row"><div><label>注文ステータス</label><select id="status-${o.id}">${Object.entries(statuses).map(([key,label])=>`<option value="${key}" ${o.status===key?'selected':''}>${label}</option>`).join('')}</select></div><div><label>お見積り合計（円）</label><input id="quote-${o.id}" type="number" min="0" step="1" value="${o.quoted_total_yen??''}" placeholder="未設定"></div></div><div class="actions"><button data-save-order="${o.id}">変更を保存</button></div></div>`;
  }).join('');
 }
-$('refreshOrders').onclick=loadOrders;$('ordersList').onclick=async ev=>{const cancelBtn=ev.target.closest('[data-cancel-order]');if(cancelBtn){const id=cancelBtn.dataset.cancelOrder;if(!confirm('この注文をキャンセルしますか？注文データは削除されません。'))return;cancelBtn.disabled=true;const {data,error}=await db.from('orders').update({status:'cancelled'}).eq('id',id).select('id');cancelBtn.disabled=false;if(error||!data?.length){message('orderMsg',error?.message||'更新できませんでした。',true);return}await loadOrders();message('orderMsg','注文をキャンセルしました。データは保存されています。');return}const btn=ev.target.closest('[data-save-order]');if(!btn)return;const id=btn.dataset.saveOrder,raw=$('quote-'+id).value,amount=raw===''?null:Number(raw);if(amount!==null&&(!Number.isInteger(amount)||amount<0))return message('orderMsg','見積金額を確認してください。',true);btn.disabled=true;const {error}=await db.from('orders').update({status:$('status-'+id).value,quoted_total_yen:amount}).eq('id',id);btn.disabled=false;message('orderMsg',error?error.message:'注文を更新しました。',!!error);if(!error)await loadOrders()};
+$('refreshOrders').onclick=loadOrders;
+$('ordersList').onclick=async ev=>{
+ const btn=ev.target.closest('[data-save-order]');if(!btn)return;
+ const id=btn.dataset.saveOrder,raw=$('quote-'+id).value,amount=raw===''?null:Number(raw);
+ if(amount!==null&&(!Number.isInteger(amount)||amount<0))return message('orderMsg','見積金額を確認してください。',true);
+ const status=$('status-'+id).value;
+ if(status==='cancelled'&&!showCancelled&&!confirm('この注文をキャンセルしますか？記録は保存され、通常の注文一覧から非表示になります。'))return;
+ btn.disabled=true;
+ const {data,error}=await db.from('orders').update({status,quoted_total_yen:amount}).eq('id',id).select('id');
+ btn.disabled=false;
+ if(error||!data?.length)return message('orderMsg',error?.message||'注文を更新できませんでした。',true);
+ await loadOrders();message('orderMsg',status==='cancelled'?'キャンセル済みとして保存しました。':'注文を更新しました。');
+};
 </script></body></html>
  (0s)
 
