@@ -5,12 +5,54 @@
 :root{--green:#234d40;--bg:#f6f4ef;--line:#dddcd5}*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:system-ui,-apple-system,'Noto Sans JP',sans-serif;color:#24362f}header{background:var(--green);color:white;padding:19px max(18px,calc((100vw - 1100px)/2));display:flex;align-items:center;justify-content:space-between}h1{font-size:21px;margin:0}main{max-width:1100px;margin:30px auto;padding:0 16px}.card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:23px;margin-bottom:20px;box-shadow:0 4px 16px #00000006}h2{margin:0 0 20px;font-size:20px}label{display:block;font-size:13px;font-weight:650;margin:12px 0 5px}input,textarea,select{width:100%;padding:11px;border:1px solid #c8ccc6;border-radius:8px;background:white;font:inherit}textarea{min-height:85px}button{background:var(--green);color:white;border:0;border-radius:8px;padding:11px 16px;cursor:pointer;font:inherit}button.secondary{background:#e9eee9;color:#254a3c}button.danger{background:#9e4949}button:disabled{opacity:.5;cursor:not-allowed}.row{display:flex;gap:12px;flex-wrap:wrap;align-items:end}.row>*{flex:1;min-width:170px}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}.muted{color:#64716b;font-size:13px}.hidden{display:none!important}.item{border-top:1px solid var(--line);padding:15px 0}.item:first-child{border-top:0}.pill{background:#e7eee8;padding:4px 9px;border-radius:100px;font-size:12px}.error{color:#a23434;white-space:pre-wrap}.success{color:#1f7545;white-space:pre-wrap}#setup{border-left:4px solid #bf9448}a{color:inherit}small{font-size:12px}.preview{display:block;width:170px;height:170px;object-fit:contain;border:1px solid var(--line);border-radius:10px;background:#fafafa;margin-top:10px}.thumb{width:76px;height:76px;object-fit:cover;border-radius:8px;border:1px solid var(--line);float:right;margin-left:12px}@media(max-width:600px){.card{padding:17px}header{padding:16px}}
 
 .gallery-edit{display:flex;flex-wrap:wrap;gap:10px;margin:10px 0}.gallery-tile{width:115px;border:1px solid #ddd;border-radius:9px;padding:6px;text-align:center}.gallery-tile img{width:100%;height:84px;object-fit:cover;border-radius:5px}.gallery-tile button{font-size:12px;padding:5px 7px;margin-top:5px}.variant-table{width:100%;border-collapse:collapse;font-size:13px}.variant-table td,.variant-table th{padding:5px;border-bottom:1px solid #ddd}.variant-table input,.variant-table select{min-width:75px;padding:8px}.order-highlight{border-left:4px solid #d69b37;padding-left:10px}.admin-stats{font-weight:800;color:#ad5e16}.order-search{max-width:440px;margin:12px 0}
+
+/* SORA ZIP one-file import and visual review */
+.sora-import-photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px;max-height:620px;overflow:auto;padding:8px}
+.sora-import-photo{background:#fff;border:2px solid #d5dfd7;border-radius:10px;padding:9px;display:flex;flex-direction:column;gap:6px}
+.sora-import-photo img{width:100%;height:150px;object-fit:contain;background:#f4f4f4;border-radius:7px}
+.sora-import-photo small{font-size:12px;overflow-wrap:anywhere}
+.sora-import-photo label{margin:2px 0;font-size:14px}
+.sora-import-photo input{width:auto}
+.sora-import-variant{border:1px solid #ccd9d0;background:#fff;border-radius:10px;padding:10px;margin:10px 0}
+.sora-import-variant-controls{display:grid;grid-template-columns:1.3fr 1fr .9fr 1.5fr 1.2fr auto;gap:8px;align-items:center}
+.sora-import-variant-controls input,.sora-import-variant-controls select{min-width:0}
+.sora-import-variant small{color:#60736a}
+.sora-import-pill{display:inline-block;padding:8px 10px;margin:4px;background:#e7eee8;border-radius:9px;font-size:14px}
+#soraZipImport{border:2px solid #b4d4c3;background:#eff8f1}
+#soraZipImport h3{font-size:23px}
+#soraZipImport button{min-height:45px}
+#soraZipReview h4{font-size:18px;margin-bottom:8px}
+@media(max-width:950px){.sora-import-variant-controls{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.sora-import-photo-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.sora-import-variant-controls{grid-template-columns:1fr}}
 </style></head>
 <body><header><h1>SORA SELECT <small>管理画面</small></h1><button id="logout" class="secondary hidden">ログアウト</button></header><main>
 <section class="card" id="setup"><h2>初期設定</h2><p class="muted">Supabase URL と Publishable key を設定してください。Secret / service_role key は使用しないでください。</p><p id="setupState"></p></section>
 <section class="card" id="loginCard"><h2>管理者ログイン</h2><form id="loginForm"><label>メールアドレス</label><input id="email" type="email" autocomplete="username" required><label>パスワード</label><input id="password" type="password" autocomplete="current-password" required><div class="actions"><button type="submit">ログイン</button></div></form><p id="loginMsg" role="status"></p></section>
 <div id="dashboard" class="hidden"><section class="card"><h2>商品管理</h2><p class="muted">画像は5MB以下の JPEG・PNG・WebP に対応します。公開する場合は「公開する」にチェックを入れてください。</p>
-<div id="pddImport" style="background:#f4f7f3;border:1px solid #cad8ce;border-radius:12px;padding:17px;margin-bottom:20px"><h3 style="margin:0 0 10px">📦 拼多多 JSON インポート（プレビュー）</h3><p class="muted">SORA 1.5 / 1.6 / 1.7 の JSON を読み込みます。自動公開・自動保存はしません。画像は参照用プレビューのみで、保存する場合は使用権限を確認してアップロードしてください。</p><label>JSON ファイル</label><input type="file" id="pddJson" accept=".json,application/json"><div class="row"><div><label>人民元 → 円（1元あたりの円）</label><input id="pddRate" type="number" min="0.01" step="0.01" placeholder="為替レートを入力"></div><div><label>販売価格倍率（仕入原価に対する倍率）</label><input id="pddMarkup" type="number" min="1" step="0.1" value="2"></div></div><p class="muted">販売価格＝画面上の人民元価格×為替レート×倍率（送料・関税・手数料などは別途確認）。割引価格は仕入原価を保証しません。</p><div class="actions"><button type="button" id="pddPreviewBtn" class="secondary">内容を確認</button><button type="button" id="pddApplyBtn" disabled>フォームに反映（非公開）</button></div><p id="pddStatus" role="status" class="muted"></p><div id="pddPreviewArea"></div><div class="actions"><button type="button" class="secondary" id="pddImageBtn" disabled>選択画像を保存用に取り込む（要利用許可）</button></div><p id="pddImageMsg" class="muted" role="status"></p></div>
+
+<div id="soraZipImport" class="card" style="padding:18px;margin:15px 0">
+<h3>📦 拼多多 ZIP 一键导入 · 商品审核</h3>
+<p class="muted">支持 SORA 3.3 / 3.3.1 / 3.3.3 / inline-safe 的 ZIP，以及旧版 JSON。直接读取 ZIP 内真实照片，逐张勾选，手动匹配规格和价格。导入预览在本地完成；只有点击下方原有的「商品を保存」才会上传并保存。默认非公开、停售。</p>
+<label for="soraZipFile">选择采集器导出的 ZIP（推荐）或 JSON</label><input id="soraZipFile" type="file" accept=".zip,.json,application/zip,application/json">
+<div class="row"><div><label for="soraZipRate">人民币 → 日元（1元＝多少日元）</label><input id="soraZipRate" type="number" min="0.01" step="0.01" placeholder="例如 21.5（请按实际汇率填写）"></div><div><label for="soraZipMarkup">参考售价倍率（不含物流、税费）</label><input id="soraZipMarkup" type="number" min="1" step="0.1" value="2"></div></div>
+<div class="actions"><button type="button" id="soraZipRead">读取 ZIP / JSON 并预览</button></div>
+<p id="soraZipStatus" role="status" class="muted"></p>
+<div id="soraZipReview" class="hidden">
+<p id="soraZipSource" class="muted" style="overflow-wrap:anywhere"></p><div id="soraZipWarnings" class="error"></div>
+<label for="soraZipName">商品名称（日语名称可直接修改）</label><input id="soraZipName" maxlength="200" placeholder="请填写真实商品名称">
+<h4>采集到的人民币价格（仅供参考，不自动当作采购价）</h4><div id="soraZipPrices"></div>
+<h4>照片筛选（可保留、取消、指定主图）</h4><p id="soraZipPhotoCount" class="muted"></p>
+<div class="actions"><button type="button" class="secondary" id="soraZipSelectAll">选择全部真实图片</button><button type="button" class="secondary" id="soraZipSelectNone">取消全部</button></div>
+<div id="soraZipPhotos" class="sora-import-photo-grid"></div>
+<h4>规格、价格、配图（均可手动调整）</h4><p id="soraZipVariantCount" class="muted"></p><div id="soraZipVariants"></div>
+<div class="actions"><button type="button" class="secondary" id="soraZipAddVariant">＋ 增加规格</button></div>
+<label for="soraZipBaseYen">商品基础售价（日元，可留空使用已填规格最低价；都未知则以 ¥0 保存非公开草稿）</label><input id="soraZipBaseYen" type="number" min="0" step="1" placeholder="可留空">
+<label style="display:flex;align-items:flex-start;gap:8px;font-size:14px"><input id="soraZipRights" type="checkbox" style="width:auto;margin-top:4px">我已确认有权将所选照片上传并用于商品销售页面</label>
+<div class="actions"><button type="button" id="soraZipApply">填入下方商品表单（不上传、不公开）</button></div>
+<p class="muted">操作流程：选择 ZIP → 核对名称/价格 → 勾选照片并指定主图 → 手动配对规格 → 填入表单 → 点击原有「商品を保存」。若没有准确售价，保存草稿后再补充，不要公开 ¥0 商品。</p>
+</div></div>
+
+<details id="legacyPddImport" class="card"><summary style="font-size:17px;font-weight:700;cursor:pointer">旧版 JSON 导入（1.5～1.7，保留兼容）</summary><div id="pddImport" style="background:#f4f7f3;border:1px solid #cad8ce;border-radius:12px;padding:17px;margin-bottom:20px"><h3 style="margin:0 0 10px">📦 拼多多 JSON インポート（プレビュー）</h3><p class="muted">SORA 1.5 / 1.6 / 1.7 の JSON を読み込みます。自動公開・自動保存はしません。画像は参照用プレビューのみで、保存する場合は使用権限を確認してアップロードしてください。</p><label>JSON ファイル</label><input type="file" id="pddJson" accept=".json,application/json"><div class="row"><div><label>人民元 → 円（1元あたりの円）</label><input id="pddRate" type="number" min="0.01" step="0.01" placeholder="為替レートを入力"></div><div><label>販売価格倍率（仕入原価に対する倍率）</label><input id="pddMarkup" type="number" min="1" step="0.1" value="2"></div></div><p class="muted">販売価格＝画面上の人民元価格×為替レート×倍率（送料・関税・手数料などは別途確認）。割引価格は仕入原価を保証しません。</p><div class="actions"><button type="button" id="pddPreviewBtn" class="secondary">内容を確認</button><button type="button" id="pddApplyBtn" disabled>フォームに反映（非公開）</button></div><p id="pddStatus" role="status" class="muted"></p><div id="pddPreviewArea"></div><div class="actions"><button type="button" class="secondary" id="pddImageBtn" disabled>選択画像を保存用に取り込む（要利用許可）</button></div><p id="pddImageMsg" class="muted" role="status"></p></div></details>
 <form id="productForm"><input type="hidden" id="productId"><div class="row"><div><label>商品名</label><input id="productName" required maxlength="200"></div><div><label>価格（税込・円）</label><input id="productPrice" type="number" min="0" step="1" required></div></div><label>説明</label><textarea id="productDescription"></textarea><label>カテゴリ</label><input id="productCategory" placeholder="収納・生活雑貨"><label>メイン画像をアップロード（従来方式も利用可）</label><input id="productImage" type="file" accept="image/jpeg,image/png,image/webp"><img id="imagePreview" class="preview hidden" alt="商品画像プレビュー"><label><input id="removeImage" type="checkbox" style="width:auto"> 現在の商品画像を外す</label><p class="muted">画像を選ぶとプレビューが表示されます。画像の変更は「商品を保存」を押すと反映されます。</p><label>追加写真をアップロード（複数可・各5MBまで）</label><input id="galleryFiles" type="file" accept="image/jpeg,image/png,image/webp" multiple><div id="galleryEditor" class="gallery-edit"></div><p class="muted">写真を削除するときは画像下の「削除」を押してください。商品を保存するまで反映されません。</p>
 <label>お届け目安・配送の説明</label><input id="deliveryNote" placeholder="例：ご注文確定後 7〜14日（目安）"><label>販売状態</label><select id="stockStatus"><option value="available">販売中</option><option value="out">在庫なし</option></select>
 <h3>カラー・サイズ・価格の組み合わせ</h3><p class="muted">各行が購入できる1種類です。カラー・サイズの一方だけでもOK。写真はアップロード済み画像から選択。価格は各行に設定します。</p><div style="overflow-x:auto"><table class="variant-table"><thead><tr><th>カラー</th><th>サイズ</th><th>価格（円）</th><th>写真</th><th>販売</th><th></th></tr></thead><tbody id="variantRows"></tbody></table></div><div class="actions"><button class="secondary" type="button" id="addVariant">＋ 規格を追加</button></div>
@@ -135,7 +177,7 @@ $('ordersList').onclick=async ev=>{
  if(error||!data?.length)return message('orderMsg',error?.message||'注文を更新できませんでした。',true);
  await loadOrders();message('orderMsg',status==='cancelled'?'キャンセル済みとして保存しました。':'注文を更新しました。');
 };
-</script></body></html>
+</script><script src="./sora-zip-core.js"></script><script src="./sora-zip-import.js"></script></body></html>
 ```
 
 **&#x20;(0s)**
